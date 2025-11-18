@@ -1,0 +1,262 @@
+ html, body {
+    margin: 0;
+    padding: 0;
+    width: 100dvw;
+    height: 100dvh;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f5f3ef, #e8e6e3);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    position: relative;
+    color: #1a1a1a;
+    transition: background 0.8s ease;
+    cursor: none;
+  }
+
+  body {
+    height: 300vh;
+  }
+
+  /* Custom Cursor */
+  .custom-cursor {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    pointer-events: none;
+    z-index: 1000;
+    transition: transform 0.2s ease, background 0.3s ease;
+  
+  }
+
+  .custom-cursor.hover {
+    transform: scale(1.5);
+  }
+
+  /* Cursor Farben - genau wie die Hover-Farben der Hotspots */
+  .custom-cursor.holz { background: #a0d468; }
+  .custom-cursor.feuer { background: #f17e5d; }
+  .custom-cursor.erde { background: #e2c38f; }
+  .custom-cursor.metall { background: #c0c0c0; }
+  .custom-cursor.wasser { background: #6ec1e4; }
+
+  .viewport-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+    pointer-events: none;
+  }
+
+  .question {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  .hotspots-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+
+  .hotspot {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    cursor: none;
+    position: absolute;
+    text-align: center;
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+    box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  }
+
+  .hotspot.visible {
+    pointer-events: auto;
+  }
+
+  .hotspot.active {
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    z-index: 100;
+    font-size: 1.8rem;
+    background: rgba(255,255,255,1.0) !important;
+    backdrop-filter: blur(20px);
+    color: #1a1a1a !important;
+  }
+
+  /* Box Shadow für Hover - gleiche Farben wie Cursor */
+  .holz:hover { box-shadow: 0 0 30px 10px rgba(160, 212, 104, 0.4); }
+  .feuer:hover { box-shadow: 0 0 30px 10px rgba(241, 126, 93, 0.4); }
+  .erde:hover { box-shadow: 0 0 30px 10px rgba(226, 195, 143, 0.4); }
+  .metall:hover { box-shadow: 0 0 30px 10px rgba(192, 192, 192, 0.4); }
+  .wasser:hover { box-shadow: 0 0 30px 10px rgba(110, 193, 228, 0.4); }
+
+  /* Animation für Farbausbreitung */
+  @keyframes colorSpread {
+    0% {
+      box-shadow: 0 0 0 0 rgba(0,0,0,0.3);
+    }
+    100% {
+      box-shadow: 0 0 0 100vmax rgba(0,0,0,0.3);
+    }
+  }
+
+  /* Spezifische Farbausbreitungen - gleiche Farben wie Hover */
+  .holz.active { animation: colorSpreadHolz 1s ease-out forwards; }
+  .feuer.active { animation: colorSpreadFeuer 1s ease-out forwards; }
+  .erde.active { animation: colorSpreadErde 1s ease-out forwards; }
+  .metall.active { animation: colorSpreadMetall 1s ease-out forwards; }
+  .wasser.active { animation: colorSpreadWasser 1s ease-out forwards; }
+
+  @keyframes colorSpreadHolz {
+    0% { box-shadow: 0 0 0 0 rgba(160, 212, 104, 0); }
+    100% { box-shadow: 0 0 0 100vmax rgba(160, 212, 104, 1); }
+  }
+
+  @keyframes colorSpreadFeuer {
+    0% { box-shadow: 0 0 0 0 rgba(241, 126, 93, 0); }
+    100% { box-shadow: 0 0 0 100vmax rgba(241, 126, 93, 1); }
+  }
+
+  @keyframes colorSpreadErde {
+    0% { box-shadow: 0 0 0 0 rgba(226, 195, 143, 0); }
+    100% { box-shadow: 0 0 0 100vmax rgba(226, 195, 143, 1); }
+  }
+
+  @keyframes colorSpreadMetall {
+    0% { box-shadow: 0 0 0 0 rgba(192, 192, 192, 0); }
+    100% { box-shadow: 0 0 0 100vmax rgba(192, 192, 192, 1); }
+  }
+
+  @keyframes colorSpreadWasser {
+    0% { box-shadow: 0 0 0 0 rgba(110, 193, 228, 0); }
+    100% { box-shadow: 0 0 0 100vmax rgba(110, 193, 228, 1); }
+  }
+
+  /* Neue Positionierung - links Holz, oben Feuer, rechts Metall, unten Wasser */
+  .holz { top: 50%; left: 10%; transform: translateY(-50%); }
+  .feuer { top: 10%; left: 50%; transform: translateX(-50%); }
+  .metall { top: 50%; right: 10%; transform: translateY(-50%); }
+  .wasser { bottom: 10%; left: 50%; transform: translateX(-50%); }
+  .erde { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  
+  /* Aktive Positionierung - Hotspots bleiben an ihrer Position */
+  .holz.active { 
+    top: 40%; 
+    left: -10%; 
+    transform: translateY(-50%) !important; 
+  }
+
+  .feuer.active { 
+    top: -30%; 
+    left: 50%; 
+    transform: translateX(-50%) !important; 
+  }
+
+  .metall.active { 
+    top: 60%; 
+    right: -10%; 
+    transform: translateY(-50%) !important; 
+  }
+
+  .wasser.active { 
+    bottom: -30%; 
+    left: 50%; 
+    transform: translateX(-50%) !important; 
+  }
+
+  .erde.active { 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%) !important; 
+  }
+
+  .editorial-word {
+    position: absolute;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index:520;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #1a1a1a;
+  }
+
+  /* Stichpunkte Container */
+  .keywords-container {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    max-width: 80%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .keyword {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  /* Dunklere Textfarbe für helle Hintergründe */
+  body.holz-bg .editorial-word,
+  body.erde-bg .editorial-word,
+  body.holz-bg .keyword,
+  body.erde-bg .keyword {
+    color: #1a1a1a;
+  }
+
+  /* Helle Textfarbe für dunkle Hintergründe */
+  body.feuer-bg .editorial-word,
+  body.metall-bg .editorial-word,
+  body.wasser-bg .editorial-word,
+  body.feuer-bg .keyword,
+  body.metall-bg .keyword,
+  body.wasser-bg .keyword {
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  /* Background Colors für Body */
+  body.holz-bg { background: linear-gradient(135deg, #a0d468, #7bb26a); }
+  body.feuer-bg { background: linear-gradient(135deg, #f17e5d, #e94e1b); }
+  body.erde-bg { background: linear-gradient(135deg, #e2c38f, #bfa26f); }
+  body.metall-bg { background: linear-gradient(135deg, #c0c0c0, #8f8f8f); }
+  body.wasser-bg { background: linear-gradient(135deg, #6ec1e4, #2a7ab8); }
