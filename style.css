@@ -1,262 +1,178 @@
- html, body {
-    margin: 0;
-    padding: 0;
-    width: 100dvw;
-    height: 100dvh;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #f5f3ef, #e8e6e3);
-    overflow-y: scroll;
-    overflow-x: hidden;
-    position: relative;
-    color: #1a1a1a;
-    transition: background 0.8s ease;
-    cursor: none;
-  }
+:root {
+  --easing: cubic-bezier(0.19, 1, 0.22, 1);
+  /* Element Colors */
+  --c-holz: #a0d468;
+  --c-feuer: #f17e5d;
+  --c-erde: #e2c38f;
+  --c-metall: #c0c0c0;
+  --c-wasser: #6ec1e4;
+  --c-bg-default: #f5f3ef;
+}
 
-  body {
-    height: 300vh;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100dvw;
+  /* Body height creates the scroll track, but visual content is fixed */
+  min-height: 100dvh; 
+  font-family: 'Inter', sans-serif;
+  background-color: var(--c-bg-default);
+  /* Ensure transition applies to background-color */
+  transition: background-color 0.8s var(--easing);
+  cursor: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
 
-  /* Custom Cursor */
-  .custom-cursor {
-    position: fixed;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #1a1a1a;
-    pointer-events: none;
-    z-index: 1000;
-    transition: transform 0.2s ease, background 0.3s ease;
-    mix-blend-mode: difference;
-  }
+/* 300vh height to allow scroll-driven question/hotspot reveal */
+body { height: 300vh; }
 
-  .custom-cursor.inside-hotspot {
-    mix-blend-mode: normal;
-  }
+/* When locked (hotspot active), prevent native scrolling */
+body.locked { overflow: hidden; height: 100vh; }
 
-  .custom-cursor.hover {
-    transform: scale(1.5);
-  }
+/* --- Color Modes (Applied to Body) --- */
+body.holz-mode { background-color: var(--c-holz); }
+body.feuer-mode { background-color: var(--c-feuer); }
+body.erde-mode { background-color: var(--c-erde); }
+body.metall-mode { background-color: var(--c-metall); }
+body.wasser-mode { background-color: var(--c-wasser); }
 
-  /* Cursor Farben - genau wie die Hover-Farben der Hotspots */
-  .custom-cursor.holz { background: #a0d468; }
-  .custom-cursor.feuer { background: #f17e5d; }
-  .custom-cursor.erde { background: #e2c38f; }
-  .custom-cursor.metall { background: #c0c0c0; }
-  .custom-cursor.wasser { background: #6ec1e4; }
+/* --- Noise Overlay --- */
+.noise-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 9000; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
 
-  .viewport-fixed {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100dvw;
-    height: 100dvh;
-  }
+/* --- Media Layer --- */
+.media-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 5; pointer-events: none;
+  /* IMPORTANT: Transparent so body color shows through initially */
+  background: transparent; 
+}
 
-  .question {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-    font-weight: 700;
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    pointer-events: none;
-  }
+.bg-image {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; transform: scale(1.1);
+  filter: brightness(0.6) grayscale(0.2);
+  transition: opacity 1s ease;
+}
+/* Active image fades in over the colored background */
+.bg-image.active { opacity: 1; transform: scale(1); }
 
-  .hotspots-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-  }
+/* --- Viewport (FIXED) --- */
+.viewport-fixed {
+  position: fixed; /* Strictly fixed */
+  top: 0; left: 0;
+  width: 100dvw; height: 100dvh;
+  z-index: 10; pointer-events: none;
+}
 
-  .hotspot {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    backdrop-filter: blur(15px);
-    background: rgba(255,255,255,0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 600;
-    cursor: none;
-    position: absolute;
-    text-align: center;
-    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    opacity: 0;
-    pointer-events: none;
-    z-index: 10;
-    overflow: hidden;
-    box-shadow: 0 0 0 0 rgba(0,0,0,0);
-  }
+/* --- Custom Cursor --- */
+.custom-cursor {
+  position: fixed; top: 0; left: 0;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #1a1a1a; pointer-events: none; z-index: 10000;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+  display: flex; justify-content: center; align-items: center;
+  transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
+}
 
-  .hotspot.visible {
-    pointer-events: auto;
-  }
+/* Colored Cursor States (Override difference mode) */
+.custom-cursor.holz { background: var(--c-holz) !important; mix-blend-mode: normal; }
+.custom-cursor.feuer { background: var(--c-feuer) !important; mix-blend-mode: normal; }
+.custom-cursor.erde { background: var(--c-erde) !important; mix-blend-mode: normal; }
+.custom-cursor.metall { background: var(--c-metall) !important; mix-blend-mode: normal; }
+.custom-cursor.wasser { background: var(--c-wasser) !important; mix-blend-mode: normal; }
 
-  .hotspot.active {
-    width: 40vw;
-    height: 40vw;
-    border-radius: 50%;
-    z-index: 100;
-    font-size: 1.8rem;
-    background: rgba(255,255,255,1.0) !important;
-    backdrop-filter: blur(20px);
-    color: #1a1a1a !important;
-  }
+.custom-cursor.hover { width: 50px; height: 50px; }
 
-  /* Box Shadow für Hover - gleiche Farben wie Cursor */
-  .holz:hover { box-shadow: 0 0 30px 10px rgba(160, 212, 104, 0.4); }
-  .feuer:hover { box-shadow: 0 0 30px 10px rgba(241, 126, 93, 0.4); }
-  .erde:hover { box-shadow: 0 0 30px 10px rgba(226, 195, 143, 0.4); }
-  .metall:hover { box-shadow: 0 0 30px 10px rgba(192, 192, 192, 0.4); }
-  .wasser:hover { box-shadow: 0 0 30px 10px rgba(110, 193, 228, 0.4); }
+/* Close Mode (X) */
+.custom-cursor.close-mode {
+  width: 60px; height: 60px;
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  mix-blend-mode: normal;
+}
 
-  /* Animation für Farbausbreitung */
-  @keyframes colorSpread {
-    0% {
-      box-shadow: 0 0 0 0 rgba(0,0,0,0.3);
-    }
-    100% {
-      box-shadow: 0 0 0 100vmax rgba(0,0,0,0.3);
-    }
-  }
+/* On Word (Dot) */
+.custom-cursor.on-word {
+  width: 10px !important; height: 10px !important;
+  background: #fff !important; border: none !important;
+  mix-blend-mode: difference !important;
+}
 
-  /* Spezifische Farbausbreitungen - gleiche Farben wie Hover */
-  .holz.active { animation: colorSpreadHolz 1s ease-out forwards; }
-  .feuer.active { animation: colorSpreadFeuer 1s ease-out forwards; }
-  .erde.active { animation: colorSpreadErde 1s ease-out forwards; }
-  .metall.active { animation: colorSpreadMetall 1s ease-out forwards; }
-  .wasser.active { animation: colorSpreadWasser 1s ease-out forwards; }
+.cursor-icon { position: relative; width: 0; height: 0; opacity: 0; transition: opacity 0.2s; }
+.custom-cursor.close-mode .cursor-icon { width: 20px; height: 20px; opacity: 1; }
+.cursor-icon::before, .cursor-icon::after {
+  content: ''; position: absolute; top: 50%; left: 0;
+  width: 100%; height: 1px; background: #fff;
+  transform: rotate(45deg);
+}
+.cursor-icon::after { transform: rotate(-45deg); }
 
-  @keyframes colorSpreadHolz {
-    0% { box-shadow: 0 0 0 0 rgba(160, 212, 104, 0); }
-    100% { box-shadow: 0 0 0 100vmax rgba(160, 212, 104, 1); }
-  }
+/* --- Hotspots --- */
+.hotspots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
 
-  @keyframes colorSpreadFeuer {
-    0% { box-shadow: 0 0 0 0 rgba(241, 126, 93, 0); }
-    100% { box-shadow: 0 0 0 100vmax rgba(241, 126, 93, 1); }
-  }
+.hotspot {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(5px);
+  display: flex; justify-content: center; align-items: center;
+  cursor: none; position: absolute; pointer-events: auto; z-index: 20; opacity: 0;
+  filter: url(#liquid);
+  transition: box-shadow 0.4s ease;
+}
 
-  @keyframes colorSpreadErde {
-    0% { box-shadow: 0 0 0 0 rgba(226, 195, 143, 0); }
-    100% { box-shadow: 0 0 0 100vmax rgba(226, 195, 143, 1); }
-  }
+.hotspot .label {
+  font-family: 'Space Mono', monospace; font-size: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  pointer-events: none; opacity: 0.6; color: #1a1a1a;
+}
 
-  @keyframes colorSpreadMetall {
-    0% { box-shadow: 0 0 0 0 rgba(192, 192, 192, 0); }
-    100% { box-shadow: 0 0 0 100vmax rgba(192, 192, 192, 1); }
-  }
+/* Colored Shadows */
+.hotspot.holz:hover { box-shadow: 0 0 30px 5px rgba(160, 212, 104, 0.5); }
+.hotspot.feuer:hover { box-shadow: 0 0 30px 5px rgba(241, 126, 93, 0.5); }
+.hotspot.erde:hover { box-shadow: 0 0 30px 5px rgba(226, 195, 143, 0.5); }
+.hotspot.metall:hover { box-shadow: 0 0 30px 5px rgba(192, 192, 192, 0.5); }
+.hotspot.wasser:hover { box-shadow: 0 0 30px 5px rgba(110, 193, 228, 0.5); }
 
-  @keyframes colorSpreadWasser {
-    0% { box-shadow: 0 0 0 0 rgba(110, 193, 228, 0); }
-    100% { box-shadow: 0 0 0 100vmax rgba(110, 193, 228, 1); }
-  }
+/* Active State */
+.hotspot.active {
+  z-index: 100;
+  background: #fbfbfb !important;
+  border: none; backdrop-filter: none;
+  color: #1a1a1a !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+}
 
-  /* Neue Positionierung - links Holz, oben Feuer, rechts Metall, unten Wasser */
-  .holz { top: 50%; left: 10%; transform: translateY(-50%); }
-  .feuer { top: 10%; left: 50%; transform: translateX(-50%); }
-  .metall { top: 50%; right: 10%; transform: translateY(-50%); }
-  .wasser { bottom: 10%; left: 50%; transform: translateX(-50%); }
-  .erde { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-  
-  /* Aktive Positionierung - Hotspots bleiben an ihrer Position */
-  .holz.active { 
-    top: 40%; 
-    left: -10%; 
-    transform: translateY(-50%) !important; 
-  }
+/* Positions */
+.holz { top: 50%; left: 15%; transform: translate(-50%, -50%); }
+.feuer { top: 20%; left: 50%; transform: translate(-50%, -50%); }
+.metall { top: 50%; right: 15%; transform: translate(50%, -50%); }
+.wasser { bottom: 20%; left: 50%; transform: translate(-50%, 50%); }
+.erde { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.erde.active { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; }
 
-  .feuer.active { 
-    top: -30%; 
-    left: 50%; 
-    transform: translateX(-50%) !important; 
-  }
+/* Question */
+.question {
+  position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+  font-family: 'Inter', sans-serif; font-size: 2.5rem; font-weight: 300;
+  letter-spacing: -0.02em; display: flex; overflow: hidden;
+}
+.char { display: inline-block; transform: translateY(100%); opacity: 0; }
 
-  .metall.active { 
-    top: 60%; 
-    right: -10%; 
-    transform: translateY(-50%) !important; 
-  }
-
-  .wasser.active { 
-    bottom: -30%; 
-    left: 50%; 
-    transform: translateX(-50%) !important; 
-  }
-
-  .erde.active { 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%) !important; 
-  }
-
-  .editorial-word {
-    position: absolute;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 3.2rem;
-    line-height: 1.4;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    z-index: 55555;
-    color: #1a1a1a;
-    text-transform: uppercase;
-  }
-
-  /* Stichpunkte Container */
-  .keywords-container {
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-    max-width: 80%;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  .keyword {
-    background: rgba(255, 255, 255, 0);
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    
-  }
-
-  /* Dunklere Textfarbe für helle Hintergründe */
-  body.holz-bg .editorial-word,
-  body.erde-bg .editorial-word,
-  body.holz-bg .keyword,
-  body.erde-bg .keyword {
-    color: #1a1a1a;
-  }
-
-  /* Helle Textfarbe für dunkle Hintergründe */
-  body.feuer-bg .editorial-word,
-  body.metall-bg .editorial-word,
-  body.wasser-bg .editorial-word,
-  body.feuer-bg .keyword,
-  body.metall-bg .keyword,
-  body.wasser-bg .keyword {
-    color: #ffffff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  }
-
-  /* Background Colors für Body */
-  body.holz-bg { background: linear-gradient(135deg, #a0d468, #7bb26a); }
-  body.feuer-bg { background: linear-gradient(135deg, #f17e5d, #e94e1b); }
-  body.erde-bg { background: linear-gradient(135deg, #e2c38f, #bfa26f); }
-  body.metall-bg { background: linear-gradient(135deg, #c0c0c0, #8f8f8f); }
-  body.wasser-bg { background: linear-gradient(135deg, #6ec1e4, #2a7ab8); }
+/* Words */
+.editorial-word {
+  position: absolute; font-family: 'Inter', sans-serif; font-weight: 400;
+  font-size: 3.5vw; line-height: 1; letter-spacing: -0.04em;
+  z-index: 200; color: #ffffff; text-transform: uppercase;
+  pointer-events: auto; cursor: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+.editorial-word span { display: block; transform: translateY(110%); }
+.editorial-word.dimmed { opacity: 0.3; transition: opacity 0.5s ease; }
+.editorial-word.active-focus { opacity: 1; }

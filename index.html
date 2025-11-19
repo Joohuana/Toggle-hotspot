@@ -2,31 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hotspot toggle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elemental | Tech-Zen</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  
-  
-<div class="custom-cursor"></div>
+  <!-- Grain Overlay -->
+  <div class="noise-overlay"></div>
 
-<div class="viewport-fixed">
-  <div class="question" id="question">Hier ist eine Frage?</div>
-  
-  <div class="hotspots-container">
-    <div class="hotspot holz" data-element="holz">holz</div>
-    <div class="hotspot feuer" data-element="feuer">feuer</div>
-    <div class="hotspot metall" data-element="metall">metall</div>
-    <div class="hotspot wasser" data-element="wasser">wasser</div>
-    <div class="hotspot erde" data-element="erde">erde</div>
+  <!-- Media Layer (Images) -->
+  <div class="media-container" id="mediaContainer"></div>
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor">
+    <div class="cursor-icon"></div>
   </div>
-</div>
 
+  <!-- Main Viewport (FIXED) -->
+  <div class="viewport-fixed">
+    <div class="question" id="question">
+      <span class="char">W</span><span class="char">a</span><span class="char">s</span>
+      <span class="char">&nbsp;</span>
+      <span class="char">i</span><span class="char">s</span><span class="char">t</span>
+      <span class="char">&nbsp;</span>
+      <span class="char">d</span><span class="char">e</span><span class="char">i</span><span class="char">n</span>
+      <span class="char">&nbsp;</span>
+      <span class="char">E</span><span class="char">l</span><span class="char">e</span><span class="char">m</span><span class="char">e</span><span class="char">n</span><span class="char">t</span><span class="char">?</span>
+    </div>
+    
+    <div class="hotspots-container">
+      <div class="hotspot holz" data-element="holz"><span class="label">Holz</span></div>
+      <div class="hotspot feuer" data-element="feuer"><span class="label">Feuer</span></div>
+      <div class="hotspot metall" data-element="metall"><span class="label">Metall</span></div>
+      <div class="hotspot wasser" data-element="wasser"><span class="label">Wasser</span></div>
+      <div class="hotspot erde" data-element="erde"><span class="label">Erde</span></div>
+    </div>
+  </div>
 
+  <!-- SVG Filter -->
+  <svg style="display: none;">
+    <defs>
+      <filter id="liquid">
+        <feTurbulence type="fractalNoise" baseFrequency="0" numOctaves="1" result="warp" />
+        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="35" in="SourceGraphic" in2="warp" />
+      </filter>
+    </defs>
+  </svg>
 
-
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
