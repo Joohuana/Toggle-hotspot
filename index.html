@@ -3,29 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>ELEMENTAL | Silver OS</title>
+  <title>ELEMENTAL | Silver OS Final</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 1. GLOBAL LAYERS -->
+  <!-- 1. INTRO LAYER -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text">
+      <span>What</span> <span>is</span> <span>your</span> <span class="italic">Element?</span>
+    </div>
+    <div class="scroll-hint">SCROLL TO INITIATE</div>
+  </div>
+
+  <!-- 2. FX LAYERS -->
   <div class="noise-overlay"></div>
   <div class="scanlines"></div>
 
-  <!-- 2. WEBGL CANVAS -->
-  <div id="canvas-container"></div>
+  <!-- 3. WEBGL CANVAS -->
+  <div id="canvas-container" class="faded-start"></div>
 
-  <!-- 3. MAIN HUD (3D Navigation) -->
-  <div class="ui-layer" id="mainUI">
+  <!-- 4. MAIN HUD -->
+  <div class="ui-layer hidden" id="mainUI">
     <div class="ui-marker top-left"></div>
     <div class="ui-marker top-right"></div>
     <div class="ui-marker bottom-left"></div>
     <div class="ui-marker bottom-right"></div>
     
     <div class="header">
-      <div class="sys-info">SYS.OS // SILVER v8.0</div>
-      <div class="instructions">SCROLL TO MORPH • DRAG TO ROTATE</div>
+      <div class="sys-info">SYS.OS // SILVER v16.0</div>
+      <div class="instructions">SIDES: SCROLL TO SWITCH • CENTER: INTERACT</div>
     </div>
 
     <div class="center-stage" id="centerStage">
@@ -45,28 +53,24 @@
     </div>
   </div>
 
-  <!-- 4. EDITORIAL HUD -->
+  <!-- 5. EDITORIAL HUD -->
   <div class="editorial-layer" id="editorialLayer">
     
-    <!-- The Floating Thumbnail (Follows Cursor) -->
     <div class="cursor-follower" id="cursorFollower">
-      <img id="activeThumb" src="" alt="Element Visual" />
+      <img id="activeThumb" src="" alt="Data" />
     </div>
 
     <div class="editorial-header">
       <div class="data-block">
-        <span class="label">SUBJECT</span>
+        <span class="label">ELEMENT</span>
         <span class="value" id="ed-subject">DATA</span>
       </div>
       <div class="data-block right">
-        <span class="label">STATUS</span>
-        <span class="value">ONLINE</span>
+        <div class="status-square" id="statusSquare"></div>
       </div>
     </div>
 
-    <div class="editorial-content" id="wordContainer">
-      <!-- Word injected here -->
-    </div>
+    <div class="editorial-content" id="wordContainer"></div>
 
     <div class="editorial-footer">
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
