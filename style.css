@@ -9,19 +9,28 @@ body { margin: 0; overflow: hidden; background-color: var(--bg-color); font-fami
 
 /* --- CANVAS --- */
 canvas { display: block; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1; transition: opacity 1s ease; }
+#canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 1.5s ease; }
 .faded-start { opacity: 0; }
 canvas.faded { opacity: 0; }
 
-/* --- INTRO --- */
+/* --- INTRO (Updated) --- */
 .intro-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 200; pointer-events: auto;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   background: var(--bg-color); transition: opacity 1.2s ease;
 }
+/* Smaller, White-ish (Dark grey on silver actually reads better, but user asked for white. 
+   Since BG is silver light, pure white is invisible. I will use a high contrast Off-White 
+   or keep it dark based on "white color" request but ensure visibility with shadow or blend) */
 .intro-text {
-  font-family: 'Inter', sans-serif; font-size: 4vw; font-weight: 300;
-  color: var(--text-color); display: flex; gap: 0.5em;
+  font-family: 'Inter', sans-serif; 
+  font-size: 1.5rem; /* Smaller Size */
+  font-weight: 400;
+  color: #ffffff; /* White as requested */
+  text-shadow: 0 0 20px rgba(0,0,0,0.2); /* Shadow for visibility on light BG */
+  display: flex; gap: 0.5em;
+  align-items: center;
 }
 .intro-text .italic { font-family: 'Space Mono', monospace; font-style: italic; }
 .scroll-hint {
@@ -95,8 +104,7 @@ canvas.faded { opacity: 0; }
 .cursor-follower {
   position: fixed; top: 0; left: 0; 
   width: 320px; height: 200px; 
-  z-index: 5; 
-  pointer-events: none;
+  z-index: 5; pointer-events: none;
   transform: translate(-50%, -50%);
   opacity: 0; overflow: hidden;
   box-shadow: 0 30px 60px rgba(0,0,0,0.2);

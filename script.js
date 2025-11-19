@@ -27,7 +27,7 @@ const elements = [
   {
     id: 'earth', name: 'EARTH',
     c1: '#302b26', c2: '#8c8176',
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'cube', // ROUNDED CUBE
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'cube',
     words: [
       { text: "Stability", img: "https://images.unsplash.com/photo-1465189684280-6a8fa9b19736?w=800&q=80" },
       { text: "Foundation", img: "https://images.unsplash.com/photo-1500829243541-74b677fecc30?w=800&q=80" },
@@ -38,8 +38,8 @@ const elements = [
   },
   {
     id: 'metal', name: 'METAL',
-    c1: '#aaaaaa', c2: '#ffffff',
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'octa', // SHARP OCTAHEDRON
+    c1: '#444444', c2: '#ffffff', // Chrome: Dark Grey to White
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'octa',
     words: [
       { text: "Clarity", img: "https://images.unsplash.com/photo-1536617767305-c0f4921c701a?w=800&q=80" },
       { text: "Precision", img: "https://images.unsplash.com/photo-1501183007986-d0d080b147f9?w=800&q=80" },
@@ -51,7 +51,7 @@ const elements = [
   {
     id: 'water', name: 'WATER',
     c1: '#0a1521', c2: '#4a6fa5',
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'water', // DROPLETS
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'water',
     words: [
       { text: "Flow", img: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80" },
       { text: "Depth", img: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&q=80" },
@@ -80,15 +80,15 @@ const vertexShader = `
   varying vec2 vUv;
   varying float vNoise;
   varying vec3 vNormal;
+  varying vec3 vViewDir;
   
   uniform float uTime;
   uniform float uDistortion;
   uniform float uFrequency;
   uniform float uSpeed;
-  uniform float uShape; // 1.0 = Cube, 2.0 = Octa
+  uniform float uShape; 
   uniform float uTransition;
 
-  // Simplex Noise (Standard)
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
   vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -146,7 +146,7 @@ const vertexShader = `
     
     // EARTH: ROUNDED CUBE
     if (uShape > 0.5 && uShape < 1.5) {
-       vec3 spherePos = normalize(position) * 1.4; 
+       vec3 spherePos = normalize(position) * 1.35; // Reduced Scale
        pos = mix(position, spherePos, 0.65); 
     }
 
@@ -157,6 +157,10 @@ const vertexShader = `
        float wave = sin(pos.y * 5.0 - uTime * 10.0) * uTransition * 0.3;
        newPos += normal * wave;
     }
+    
+    // Calc view dir for Chrome Reflection
+    vec4 worldPosition = modelMatrix * vec4(newPos, 1.0);
+    vViewDir = normalize(cameraPosition - worldPosition.xyz);
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
   }
@@ -166,20 +170,30 @@ const fragmentShader = `
   varying vec2 vUv;
   varying float vNoise;
   varying vec3 vNormal;
+  varying vec3 vViewDir;
+  
   uniform vec3 uColor1;
   uniform vec3 uColor2;
   uniform float uTransition;
+  uniform float uShape; // 2.0 = Metal
 
   void main() {
     float mixValue = smoothstep(-0.6, 0.6, vNoise);
-    vec3 viewDir = vec3(0.0, 0.0, 1.0);
-    float fresnel = pow(1.0 - dot(vNormal, viewDir), 3.0);
+    float fresnel = pow(1.0 - dot(vNormal, vViewDir), 3.0);
     
     vec3 color = mix(uColor1, uColor2, mixValue);
+    
+    // METAL: CHROME REFLECTION HACK
+    if (uShape > 1.5) {
+        // Hard reflection
+        float ref = pow(1.0 - dot(vNormal, vViewDir), 0.5);
+        // High contrast mix
+        color = mix(uColor1, uColor2, ref * 2.0);
+        fresnel *= 2.0; // Boost rim
+    }
+
     color += fresnel * 0.3;
-    
     float alpha = 1.0 - uTransition; 
-    
     gl_FragColor = vec4(color, alpha);
   }
 `;
@@ -201,28 +215,26 @@ const mat = new THREE.ShaderMaterial({
   side: THREE.DoubleSide
 });
 
-// 1. Main Sphere
-const meshSphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 100), mat);
+// 1. Sphere (Wood, Fire) - Reduced 15%
+const meshSphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.35, 120), mat);
 scene.add(meshSphere);
 
-// 2. Earth Cube
-const meshCube = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.0, 2.0, 60, 60, 60), mat);
+// 2. Earth Cube - Reduced 15%
+const meshCube = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.7, 1.7, 60, 60, 60), mat);
 scene.add(meshCube);
 meshCube.visible = false;
 
-// 3. Metal Octahedron (Sharp)
-const meshOcta = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), mat);
+// 3. Metal Octahedron - Reduced 15%
+const meshOcta = new THREE.Mesh(new THREE.OctahedronGeometry(1.35, 0), mat);
 scene.add(meshOcta);
 meshOcta.visible = false;
 
-// 4. Water Cluster
+// 4. Water Cluster - Reduced 15%
 const waterGroup = new THREE.Group();
-// Unique shapes via scale
-const dCore = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 32), mat.clone());
-const d1 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 32, 32), mat.clone());
-d1.scale.set(1.1, 0.9, 1.0); // blobby
-const d2 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), mat.clone());
-d2.scale.set(0.9, 1.2, 0.9);
+const dropGeo = new THREE.SphereGeometry(0.35, 32, 32);
+const dCore = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), mat.clone());
+const d1 = new THREE.Mesh(dropGeo, mat.clone());
+const d2 = new THREE.Mesh(dropGeo, mat.clone());
 waterGroup.add(dCore, d1, d2);
 scene.add(waterGroup);
 waterGroup.visible = false;
@@ -241,6 +253,7 @@ let introActive = true;
 const windowHalfX = window.innerWidth / 2;
 const windowHalfY = window.innerHeight / 2;
 
+// REFS
 const labelEl = document.getElementById('elementLabel');
 const dots = document.querySelectorAll('.dot');
 const mainUI = document.getElementById('mainUI');
@@ -259,7 +272,7 @@ const introOverlay = document.getElementById('introOverlay');
 
 // --- FUNCTIONS ---
 
-function updateElement(index) {
+function updateElement(index, duration = 1.2) {
   const config = elements[index];
   
   labelEl.style.opacity = 0;
@@ -270,14 +283,13 @@ function updateElement(index) {
 
   dots.forEach((d, i) => d.classList.toggle('active', i === index));
 
-  // HIDE ALL
+  // Toggle Logic
   meshSphere.visible = false;
   meshCube.visible = false;
   meshOcta.visible = false;
   waterGroup.visible = false;
   mat.uniforms.uShape.value = 0.0;
 
-  // SHOW ONE
   if (config.shape === 'cube') {
     meshCube.visible = true;
     mat.uniforms.uShape.value = 1.0;
@@ -286,37 +298,41 @@ function updateElement(index) {
     mat.uniforms.uShape.value = 2.0;
   } else if (config.shape === 'water') {
     waterGroup.visible = true;
-    // Sync water clones
     waterGroup.children.forEach(m => {
-        gsap.to(m.material.uniforms.uColor1.value, { r: new THREE.Color(config.c1).r, g: new THREE.Color(config.c1).g, b: new THREE.Color(config.c1).b, duration: 1 });
-        gsap.to(m.material.uniforms.uColor2.value, { r: new THREE.Color(config.c2).r, g: new THREE.Color(config.c2).g, b: new THREE.Color(config.c2).b, duration: 1 });
+        gsap.to(m.material.uniforms.uColor1.value, { r: new THREE.Color(config.c1).r, g: new THREE.Color(config.c1).g, b: new THREE.Color(config.c1).b, duration: duration });
+        gsap.to(m.material.uniforms.uColor2.value, { r: new THREE.Color(config.c2).r, g: new THREE.Color(config.c2).g, b: new THREE.Color(config.c2).b, duration: duration });
         m.material.uniforms.uDistortion.value = 0.0; 
     });
   } else {
     meshSphere.visible = true;
   }
 
+  // Main Morph
   const c1 = new THREE.Color(config.c1);
   const c2 = new THREE.Color(config.c2);
 
-  gsap.to(mat.uniforms.uColor1.value, { r: c1.r, g: c1.g, b: c1.b, duration: 1.2 });
-  gsap.to(mat.uniforms.uColor2.value, { r: c2.r, g: c2.g, b: c2.b, duration: 1.2 });
-  gsap.to(mat.uniforms.uDistortion, { value: config.dist, duration: 1.5 });
-  gsap.to(mat.uniforms.uFrequency, { value: config.freq, duration: 1.5 });
-  gsap.to(mat.uniforms.uSpeed, { value: config.speed, duration: 1 });
+  gsap.to(mat.uniforms.uColor1.value, { r: c1.r, g: c1.g, b: c1.b, duration: duration });
+  gsap.to(mat.uniforms.uColor2.value, { r: c2.r, g: c2.g, b: c2.b, duration: duration });
+  gsap.to(mat.uniforms.uDistortion, { value: config.dist, duration: duration });
+  gsap.to(mat.uniforms.uFrequency, { value: config.freq, duration: duration });
+  gsap.to(mat.uniforms.uSpeed, { value: config.speed, duration: duration });
 }
 
 function openEditorial() {
   isEditorialMode = true;
   currentWordIndex = 0;
   const config = elements[currentIndex];
+
+   
+  edSubject.textContent = config.name;
+ 
   
-  statusSquare.style.backgroundColor = config.c2;
+  if(statusSquare) statusSquare.style.backgroundColor = config.c2;
 
   mainUI.style.opacity = 0;
   mainUI.style.pointerEvents = 'none';
 
-  // Ripple & Fade (No Scale)
+  // Ripple Out
   if(waterGroup.visible) {
      waterGroup.children.forEach(m => gsap.to(m.material.uniforms.uTransition, { value: 1.0, duration: 1.0 }));
   }
@@ -327,6 +343,8 @@ function openEditorial() {
   
   wordContainer.innerHTML = '';
   activeThumb.src = config.words[0].img;
+  
+  // Thumbnail Init
   gsap.set(cursorFollower, { left: mouseX * 200 + windowHalfX, top: mouseY * 200 + windowHalfY });
   gsap.to(cursorFollower, { opacity: 1, duration: 0.5, delay: 0.8 });
 
@@ -344,6 +362,7 @@ function openEditorial() {
 
 function closeEditorial() {
   isEditorialMode = false;
+  
   editorialLayer.classList.remove('active');
   gsap.to(cursorFollower, { opacity: 0, duration: 0.3 });
 
@@ -352,7 +371,6 @@ function closeEditorial() {
     mainUI.style.pointerEvents = 'auto';
     wordContainer.innerHTML = '';
     
-    // Instant Reset
     mat.uniforms.uTransition.value = 0.0;
     if(waterGroup.visible) {
         waterGroup.children.forEach(m => m.material.uniforms.uTransition.value = 0.0);
@@ -362,9 +380,11 @@ function closeEditorial() {
 }
 
 function updateHUD(index, total) {
-  const pct = ((index + 1) / total) * 100;
-  progressFill.style.width = `${pct}%`;
-  pageNumber.textContent = `0${index + 1} / 0${total}`;
+  if(progressFill) {
+    const pct = ((index + 1) / total) * 100;
+    progressFill.style.width = `${pct}%`;
+  }
+  if(pageNumber) pageNumber.textContent = `0${index + 1} / 0${total}`;
 }
 
 function switchEditorialWord(direction) {
@@ -375,8 +395,12 @@ function switchEditorialWord(direction) {
   if (next < 0 || next >= max) return;
 
   activeThumb.src = config.words[next].img;
-  document.getElementById(`word-${currentWordIndex}`).classList.remove('visible');
-  document.getElementById(`word-${next}`).classList.add('visible');
+
+  const oldEl = document.getElementById(`word-${currentWordIndex}`);
+  const newEl = document.getElementById(`word-${next}`);
+  if(oldEl) oldEl.classList.remove('visible');
+  if(newEl) newEl.classList.add('visible');
+
   currentWordIndex = next;
   updateHUD(next, max);
 }
@@ -387,14 +411,12 @@ const cursorX = gsap.quickTo(cursorFollower, "left", { duration: 0.5, ease: "pow
 const cursorY = gsap.quickTo(cursorFollower, "top", { duration: 0.5, ease: "power3" });
 
 document.addEventListener('mousemove', (event) => {
-  // Mouse Vel
   const dx = event.clientX - lastMouseX;
   const dy = event.clientY - lastMouseY;
   mouseVel = Math.sqrt(dx*dx + dy*dy);
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
 
-  // Scene Rot
   mouseX = (event.clientX - windowHalfX) / 400;
   mouseY = (event.clientY - windowHalfY) / 400;
   
@@ -409,7 +431,9 @@ window.addEventListener('wheel', (e) => {
   isThrottled = true;
   setTimeout(() => isThrottled = false, 600);
   
-  // INTRO SCROLL
+  const dir = e.deltaY > 0 ? 1 : -1;
+
+  // INTRO LOGIC
   if (introActive) {
       introActive = false;
       introOverlay.style.opacity = 0;
@@ -419,23 +443,23 @@ window.addEventListener('wheel', (e) => {
       return;
   }
 
-  const dir = e.deltaY > 0 ? 1 : -1;
-  
-  // MAIN SCROLL ZONES
-  if (!isEditorialMode) {
-      // Center zone (20% width) prevents switch
-      const xNorm = Math.abs(mouseX);
-      if (xNorm < 0.2) return; 
-  }
-
   if (isEditorialMode) {
     switchEditorialWord(dir);
   } else {
+    // CENTER ZONE CHECK FOR SWITCHING
+    const zone = window.innerWidth * 0.25; 
+    const inCenter = (e.clientX > zone && e.clientX < window.innerWidth - zone);
+    
+    if (!inCenter) return; // Side scroll ignored for morphing
+
+    // Calculate Speed based on scroll delta
+    const speed = Math.max(0.4, 1.5 - Math.abs(e.deltaY) * 0.002);
+    
     let next = currentIndex + dir;
     if (next < 0) next = elements.length - 1;
     if (next >= elements.length) next = 0;
     currentIndex = next;
-    updateElement(currentIndex);
+    updateElement(currentIndex, speed);
   }
 });
 
@@ -448,40 +472,34 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const time = clock.getElapsedTime();
-  mat.uniforms.uTime.value = time;
   
-  if(waterGroup.visible) {
-      waterGroup.children.forEach(m => m.material.uniforms.uTime.value = time);
-  }
+  mat.uniforms.uTime.value = time;
+  if(waterGroup.visible) waterGroup.children.forEach(m => m.material.uniforms.uTime.value = time);
 
-  // WATER PHYSICS (Liquid Cluster)
+  // WATER PHYSICS
   if (waterGroup.visible && !isEditorialMode) {
-     mouseVel *= 0.92; // Friction
-     let sep = Math.min(mouseVel * 0.04, 1.8); 
+     mouseVel *= 0.92; 
+     let sep = Math.min(mouseVel * 0.04, 1.5); 
 
-     // Core follows mouse heavily damped
+     // Core follows mouse
      dCore.position.x += (mouseX * 3.0 - dCore.position.x) * 0.05;
      dCore.position.y += (mouseY * -3.0 - dCore.position.y) * 0.05;
      
-     // Satellites
+     // D1 Orbit
      const t1 = time * 0.8;
-     const t2 = time * 0.5 + 2.0;
-     
-     // D1 orbits
-     const x1 = Math.cos(t1) * (0.7 + sep);
-     const y1 = Math.sin(t1) * (0.6 + sep);
+     const x1 = Math.cos(t1) * (0.6 + sep);
+     const y1 = Math.sin(t1) * (0.5 + sep);
      d1.position.lerp(new THREE.Vector3(dCore.position.x + x1, dCore.position.y + y1, Math.sin(time)*sep), 0.1);
      
-     // D2 orbits counter
-     const x2 = Math.sin(t2) * (0.8 + sep);
-     const y2 = Math.cos(t2) * (0.8 + sep);
+     // D2 Orbit
+     const t2 = time * 0.5 + 2.0;
+     const x2 = Math.sin(t2) * (0.7 + sep);
+     const y2 = Math.cos(t2) * (0.7 + sep);
      d2.position.lerp(new THREE.Vector3(dCore.position.x + x2, dCore.position.y + y2, Math.cos(time)*sep), 0.1);
   }
   
   // General Rotation
   const activeGroup = waterGroup.visible ? waterGroup : (meshSphere.visible ? meshSphere : (meshCube.visible ? meshCube : meshOcta));
-  
-  // Don't auto-rotate Water group as it follows mouse position instead
   if (!waterGroup.visible) {
       activeGroup.rotation.y += 0.002;
       activeGroup.rotation.x += (mouseY - activeGroup.rotation.x) * 0.05;

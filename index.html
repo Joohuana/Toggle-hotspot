@@ -22,6 +22,7 @@
   <div class="scanlines"></div>
 
   <!-- 3. WEBGL CANVAS -->
+  <!-- 'faded' class manages initial visibility -->
   <div id="canvas-container" class="faded-start"></div>
 
   <!-- 4. MAIN HUD -->
@@ -32,8 +33,8 @@
     <div class="ui-marker bottom-right"></div>
     
     <div class="header">
-      <div class="sys-info">SYS.OS // SILVER v16.0</div>
-      <div class="instructions">SIDES: SCROLL TO SWITCH • CENTER: INTERACT</div>
+      <div class="sys-info">SYS.OS // SILVER v17.0</div>
+      <div class="instructions">CENTER: SCROLL TO MORPH • SIDES: PASSIVE</div>
     </div>
 
     <div class="center-stage" id="centerStage">
@@ -56,8 +57,9 @@
   <!-- 5. EDITORIAL HUD -->
   <div class="editorial-layer" id="editorialLayer">
     
+    <!-- Floating Thumbnail -->
     <div class="cursor-follower" id="cursorFollower">
-      <img id="activeThumb" src="" alt="Data" />
+      <img id="activeThumb" src="" alt="Visual Data" />
     </div>
 
     <div class="editorial-header">
@@ -70,7 +72,9 @@
       </div>
     </div>
 
-    <div class="editorial-content" id="wordContainer"></div>
+    <div class="editorial-content" id="wordContainer">
+      <!-- Words injected via JS -->
+    </div>
 
     <div class="editorial-footer">
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
