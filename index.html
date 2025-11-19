@@ -3,83 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>ELEMENTAL | Silver OS Final</title>
+  <title>ELEMENTAL | Resonance Tuner</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- 1. INTRO LAYER -->
+  <!-- 1. INTRO (Immersive Entry) -->
   <div class="intro-overlay" id="introOverlay">
     <div class="intro-text">
-      <span>What</span> <span>is</span> <span>your</span> <span class="italic">Element?</span>
+      <span>System</span> <span>Ready.</span>
     </div>
-    <div class="scroll-hint">SCROLL TO INITIATE</div>
+    <div class="sub-intro">Tune to your frequency.</div>
+    <div class="scroll-hint">SCROLL TO BEGIN DIAGNOSTIC</div>
   </div>
 
-  <!-- 2. FX LAYERS -->
+  <!-- 2. GLOBAL FX -->
   <div class="noise-overlay"></div>
   <div class="scanlines"></div>
 
   <!-- 3. WEBGL CANVAS -->
-  <!-- 'faded' class manages initial visibility -->
   <div id="canvas-container" class="faded-start"></div>
 
-  <!-- 4. MAIN HUD -->
+  <!-- 4. MAIN HUD (The Tuner) -->
   <div class="ui-layer hidden" id="mainUI">
+    <!-- Markers -->
     <div class="ui-marker top-left"></div>
     <div class="ui-marker top-right"></div>
     <div class="ui-marker bottom-left"></div>
     <div class="ui-marker bottom-right"></div>
     
     <div class="header">
-      <div class="sys-info">SYS.OS // SILVER v17.0</div>
-      <div class="instructions">CENTER: SCROLL TO MORPH • SIDES: PASSIVE</div>
+      <div class="sys-info">DIAGNOSTIC MODE</div>
+      <div class="instructions">CENTER: SCROLL TO TUNE FREQUENCY</div>
     </div>
 
+    <!-- Center Interaction -->
     <div class="center-stage" id="centerStage">
-      <div class="element-label" id="elementLabel">ETHER</div>
+      <!-- The "Vibe" keyword changes with scroll -->
+      <div class="vibe-label" id="vibeLabel">ORGANIC</div>
+      <div class="element-label" id="elementLabel">WOOD</div>
+      
       <div class="enter-btn">
-        <span class="btn-text">ACCESS DATA</span>
+        <span class="btn-text">ESTABLISH RESONANCE</span>
         <span class="btn-line"></span>
       </div>
     </div>
 
-    <div class="nav-dots">
-      <div class="dot active"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
+    <!-- Scroll/Tuner Bar -->
+    <div class="tuner-track">
+      <div class="tuner-needle" id="tunerNeedle"></div>
+      <div class="tuner-ticks">
+        <span>I</span><span>I</span><span>I</span><span>I</span><span>I</span>
+      </div>
     </div>
   </div>
 
-  <!-- 5. EDITORIAL HUD -->
+  <!-- 5. EDITORIAL HUD (The Result & CTA) -->
   <div class="editorial-layer" id="editorialLayer">
     
-    <!-- Floating Thumbnail -->
     <div class="cursor-follower" id="cursorFollower">
       <img id="activeThumb" src="" alt="Visual Data" />
     </div>
 
     <div class="editorial-header">
       <div class="data-block">
-        <span class="label">ELEMENT</span>
-        <span class="value" id="ed-subject">DATA</span>
+        <span class="label">PRIMARY RESONANCE</span>
+        <span class="value" id="ed-subject">WOOD</span>
       </div>
       <div class="data-block right">
         <div class="status-square" id="statusSquare"></div>
       </div>
     </div>
 
-    <div class="editorial-content" id="wordContainer">
-      <!-- Words injected via JS -->
+    <!-- Editorial Words -->
+    <div class="editorial-content" id="wordContainer"></div>
+
+    <!-- THE HOOK: Booking CTA -->
+    <div class="map-status">
+      <div class="map-visual">
+        <div class="map-dot active"></div>
+        <div class="map-dot"></div>
+        <div class="map-dot"></div>
+        <div class="map-dot"></div>
+        <div class="map-dot"></div>
+      </div>
+      <div class="map-text">ELEMENTAL MAP: 10% COMPLETE</div>
+      <a class="book-btn" href="https://cal.com/elementewerk/secret" target="_blank">UNLOCK FULL PROFILE (1:1)</a>
     </div>
 
     <div class="editorial-footer">
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
       <div class="page-number" id="pageNumber">01 / 05</div>
-      <div class="close-btn" id="closeBtn">CLOSE SESSION [X]</div>
+      <div class="close-btn" id="closeBtn">RETURN TO TUNER</div>
     </div>
 
   </div>

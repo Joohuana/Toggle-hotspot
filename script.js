@@ -1,9 +1,11 @@
-// --- CONFIG ---
+// --- CONFIGURATION ---
+
+
 const elements = [
   {
-    id: 'wood', name: 'WOOD',
+    id: 'wood', name: 'WOOD', vibe: "ORGANIC GROWTH",
     c1: '#2b3a2b', c2: '#8f9e8a',
-    dist: 0.3, freq: 2.0, speed: 0.1, shape: 'sphere',
+    dist: 0.3, freq: 2.0, speed: 0.1, shape: 'sphere', type: 0,
     words: [
       { text: "Growth", img: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&q=80" },
       { text: "Roots", img: "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=800&q=80" },
@@ -13,9 +15,9 @@ const elements = [
     ]
   },
   {
-    id: 'fire', name: 'FIRE',
+    id: 'fire', name: 'FIRE', vibe: "RADICAL CHANGE",
     c1: '#3d0e0e', c2: '#b56d65',
-    dist: 0.7, freq: 1.2, speed: 0.5, shape: 'sphere',
+    dist: 0.7, freq: 1.2, speed: 0.5, shape: 'sphere', type: 1,
     words: [
       { text: "Passion", img: "https://images.unsplash.com/photo-1495754149474-e54c07932677?w=800&q=80" },
       { text: "Transformation", img: "https://images.unsplash.com/photo-1605653162070-b478783c324f?w=800&q=80" },
@@ -25,9 +27,9 @@ const elements = [
     ]
   },
   {
-    id: 'earth', name: 'EARTH',
+    id: 'earth', name: 'EARTH', vibe: "FOUNDATION",
     c1: '#302b26', c2: '#8c8176',
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'cube',
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'cube', type: 2,
     words: [
       { text: "Stability", img: "https://images.unsplash.com/photo-1465189684280-6a8fa9b19736?w=800&q=80" },
       { text: "Foundation", img: "https://images.unsplash.com/photo-1500829243541-74b677fecc30?w=800&q=80" },
@@ -37,9 +39,9 @@ const elements = [
     ]
   },
   {
-    id: 'metal', name: 'METAL',
+    id: 'metal', name: 'METAL', vibe: "PRECISION",
     c1: '#444444', c2: '#ffffff', // Chrome: Dark Grey to White
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'octa',
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'octa', type: 3,
     words: [
       { text: "Clarity", img: "https://images.unsplash.com/photo-1536617767305-c0f4921c701a?w=800&q=80" },
       { text: "Precision", img: "https://images.unsplash.com/photo-1501183007986-d0d080b147f9?w=800&q=80" },
@@ -49,9 +51,9 @@ const elements = [
     ]
   },
   {
-    id: 'water', name: 'WATER',
+    id: 'water', name: 'WATER', vibe: "ADAPTATION",
     c1: '#0a1521', c2: '#4a6fa5',
-    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'water',
+    dist: 0.0, freq: 0.0, speed: 0.0, shape: 'water', type: 4,
     words: [
       { text: "Flow", img: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&q=80" },
       { text: "Depth", img: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&q=80" },
@@ -62,31 +64,27 @@ const elements = [
   }
 ];
 
+const imgPlaceholder = "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&q=80";
+
 // --- THREE.JS ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xE0E1E3); 
-scene.fog = new THREE.FogExp2(0xE0E1E3, 0.003);
-
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.z = 6;
-
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-// --- SHADERS ---
+// --- SHADERS (Simplified for performance/stability) ---
 const vertexShader = `
   varying vec2 vUv;
   varying float vNoise;
   varying vec3 vNormal;
-  varying vec3 vViewDir;
-  
   uniform float uTime;
   uniform float uDistortion;
   uniform float uFrequency;
   uniform float uSpeed;
-  uniform float uShape; 
+  uniform float uShape;
   uniform float uTransition;
 
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -141,27 +139,16 @@ const vertexShader = `
     vNormal = normal;
     float noise = snoise(position * uFrequency + uTime * uSpeed);
     vNoise = noise;
-
     vec3 pos = position;
-    
-    // EARTH: ROUNDED CUBE
     if (uShape > 0.5 && uShape < 1.5) {
-       vec3 spherePos = normalize(position) * 1.35; // Reduced Scale
+       vec3 spherePos = normalize(position) * 1.4; 
        pos = mix(position, spherePos, 0.65); 
     }
-
     vec3 newPos = pos + normal * noise * uDistortion;
-    
-    // RIPPLE TRANSITION
     if (uTransition > 0.0) {
-       float wave = sin(pos.y * 5.0 - uTime * 10.0) * uTransition * 0.3;
+       float wave = sin(pos.y * 5.0 - uTime * 10.0) * uTransition * 0.4;
        newPos += normal * wave;
     }
-    
-    // Calc view dir for Chrome Reflection
-    vec4 worldPosition = modelMatrix * vec4(newPos, 1.0);
-    vViewDir = normalize(cameraPosition - worldPosition.xyz);
-
     gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
   }
 `;
@@ -170,30 +157,24 @@ const fragmentShader = `
   varying vec2 vUv;
   varying float vNoise;
   varying vec3 vNormal;
-  varying vec3 vViewDir;
-  
   uniform vec3 uColor1;
   uniform vec3 uColor2;
   uniform float uTransition;
-  uniform float uShape; // 2.0 = Metal
+  uniform float uType;
 
   void main() {
     float mixValue = smoothstep(-0.6, 0.6, vNoise);
-    float fresnel = pow(1.0 - dot(vNormal, vViewDir), 3.0);
-    
+    vec3 viewDir = vec3(0.0, 0.0, 1.0);
+    float fresnel = pow(1.0 - dot(vNormal, viewDir), 3.0);
     vec3 color = mix(uColor1, uColor2, mixValue);
-    
-    // METAL: CHROME REFLECTION HACK
-    if (uShape > 1.5) {
-        // Hard reflection
-        float ref = pow(1.0 - dot(vNormal, vViewDir), 0.5);
-        // High contrast mix
-        color = mix(uColor1, uColor2, ref * 2.0);
-        fresnel *= 2.0; // Boost rim
+    if (abs(uType - 3.0) < 0.1) { // Metal Chrome
+        float reflect = smoothstep(-0.1, 0.1, vNormal.y);
+        vec3 chrome = mix(vec3(0.2), vec3(0.9), reflect);
+        color = mix(color, chrome, 0.5);
+        fresnel *= 1.5;
     }
-
     color += fresnel * 0.3;
-    float alpha = 1.0 - uTransition; 
+    float alpha = 1.0 - uTransition;
     gl_FragColor = vec4(color, alpha);
   }
 `;
@@ -207,6 +188,7 @@ const mat = new THREE.ShaderMaterial({
     uSpeed: { value: 0.1 },
     uShape: { value: 0.0 },
     uTransition: { value: 0.0 },
+    uType: { value: 0.0 },
     uColor1: { value: new THREE.Color(elements[0].c1) },
     uColor2: { value: new THREE.Color(elements[0].c2) }
   },
@@ -215,21 +197,18 @@ const mat = new THREE.ShaderMaterial({
   side: THREE.DoubleSide
 });
 
-// 1. Sphere (Wood, Fire) - Reduced 15%
-const meshSphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.35, 120), mat);
+// Meshes
+const meshSphere = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6, 100), mat);
 scene.add(meshSphere);
 
-// 2. Earth Cube - Reduced 15%
-const meshCube = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.7, 1.7, 60, 60, 60), mat);
+const meshCube = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.0, 2.0, 60, 60, 60), mat);
 scene.add(meshCube);
 meshCube.visible = false;
 
-// 3. Metal Octahedron - Reduced 15%
-const meshOcta = new THREE.Mesh(new THREE.OctahedronGeometry(1.35, 0), mat);
+const meshOcta = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), mat);
 scene.add(meshOcta);
 meshOcta.visible = false;
 
-// 4. Water Cluster - Reduced 15%
 const waterGroup = new THREE.Group();
 const dropGeo = new THREE.SphereGeometry(0.35, 32, 32);
 const dCore = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), mat.clone());
@@ -240,22 +219,22 @@ scene.add(waterGroup);
 waterGroup.visible = false;
 
 
+
 // --- STATE ---
+let scrollPos = 0;
 let currentIndex = 0;
-let isThrottled = false;
+let introActive = true;
 let isEditorialMode = false;
 let currentWordIndex = 0;
 let mouseX = 0, mouseY = 0;
 let lastMouseX = 0, lastMouseY = 0;
 let mouseVel = 0;
-let introActive = true;
+let isThrottled = false;
 
-const windowHalfX = window.innerWidth / 2;
-const windowHalfY = window.innerHeight / 2;
-
-// REFS
+// DOM Refs
 const labelEl = document.getElementById('elementLabel');
-const dots = document.querySelectorAll('.dot');
+const vibeEl = document.getElementById('vibeLabel');
+const tunerNeedle = document.getElementById('tunerNeedle');
 const mainUI = document.getElementById('mainUI');
 const editorialLayer = document.getElementById('editorialLayer');
 const wordContainer = document.getElementById('wordContainer');
@@ -269,21 +248,28 @@ const canvasEl = document.querySelector('canvas');
 const canvasContainer = document.getElementById('canvas-container');
 const introOverlay = document.getElementById('introOverlay');
 
-
 // --- FUNCTIONS ---
-
-function updateElement(index, duration = 1.2) {
-  const config = elements[index];
+function updateElement() {
+  const idx = Math.round(scrollPos);
+  if (idx === currentIndex) return;
   
+  currentIndex = idx;
+  const config = elements[currentIndex];
+
+  // Update Text
   labelEl.style.opacity = 0;
+  vibeEl.style.opacity = 0;
   setTimeout(() => {
     labelEl.textContent = config.name;
+    vibeEl.textContent = config.vibe;
     labelEl.style.opacity = 1;
-  }, 300);
+    vibeEl.style.opacity = 0.7;
+  }, 200);
 
-  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+  // Move Needle
+  tunerNeedle.style.left = `${(currentIndex / 4) * 80 + 10}%`;
 
-  // Toggle Logic
+  // 3D Logic
   meshSphere.visible = false;
   meshCube.visible = false;
   meshOcta.visible = false;
@@ -291,85 +277,78 @@ function updateElement(index, duration = 1.2) {
   mat.uniforms.uShape.value = 0.0;
 
   if (config.shape === 'cube') {
-    meshCube.visible = true;
-    mat.uniforms.uShape.value = 1.0;
+      meshCube.visible = true;
+      mat.uniforms.uShape.value = 1.0;
   } else if (config.shape === 'octa') {
-    meshOcta.visible = true;
-    mat.uniforms.uShape.value = 2.0;
+      meshOcta.visible = true;
+      mat.uniforms.uShape.value = 2.0;
   } else if (config.shape === 'water') {
-    waterGroup.visible = true;
-    waterGroup.children.forEach(m => {
-        gsap.to(m.material.uniforms.uColor1.value, { r: new THREE.Color(config.c1).r, g: new THREE.Color(config.c1).g, b: new THREE.Color(config.c1).b, duration: duration });
-        gsap.to(m.material.uniforms.uColor2.value, { r: new THREE.Color(config.c2).r, g: new THREE.Color(config.c2).g, b: new THREE.Color(config.c2).b, duration: duration });
-        m.material.uniforms.uDistortion.value = 0.0; 
-    });
+      waterGroup.visible = true;
+      waterGroup.children.forEach(m => {
+          gsap.to(m.material.uniforms.uColor1.value, { r: new THREE.Color(config.c1).r, g: new THREE.Color(config.c1).g, b: new THREE.Color(config.c1).b, duration: 0.5 });
+          gsap.to(m.material.uniforms.uColor2.value, { r: new THREE.Color(config.c2).r, g: new THREE.Color(config.c2).g, b: new THREE.Color(config.c2).b, duration: 0.5 });
+          m.material.uniforms.uType.value = 4.0;
+          m.material.uniforms.uDistortion.value = 0.0;
+      });
   } else {
-    meshSphere.visible = true;
+      meshSphere.visible = true;
   }
 
-  // Main Morph
-  const c1 = new THREE.Color(config.c1);
-  const c2 = new THREE.Color(config.c2);
-
-  gsap.to(mat.uniforms.uColor1.value, { r: c1.r, g: c1.g, b: c1.b, duration: duration });
-  gsap.to(mat.uniforms.uColor2.value, { r: c2.r, g: c2.g, b: c2.b, duration: duration });
-  gsap.to(mat.uniforms.uDistortion, { value: config.dist, duration: duration });
-  gsap.to(mat.uniforms.uFrequency, { value: config.freq, duration: duration });
-  gsap.to(mat.uniforms.uSpeed, { value: config.speed, duration: duration });
+  mat.uniforms.uType.value = config.type;
+  gsap.to(mat.uniforms.uColor1.value, { r: new THREE.Color(config.c1).r, g: new THREE.Color(config.c1).g, b: new THREE.Color(config.c1).b, duration: 0.5 });
+  gsap.to(mat.uniforms.uColor2.value, { r: new THREE.Color(config.c2).r, g: new THREE.Color(config.c2).g, b: new THREE.Color(config.c2).b, duration: 0.5 });
+  gsap.to(mat.uniforms.uDistortion, { value: config.dist, duration: 0.5 });
+  gsap.to(mat.uniforms.uFrequency, { value: config.freq, duration: 0.5 });
 }
 
 function openEditorial() {
   isEditorialMode = true;
-  currentWordIndex = 0;
   const config = elements[currentIndex];
+  const words = config.words; // Changed from editorialData
 
-   
-  edSubject.textContent = config.name;
- 
-  
-  if(statusSquare) statusSquare.style.backgroundColor = config.c2;
+  document.getElementById('ed-subject').textContent = config.name;
+  document.getElementById('statusSquare').style.backgroundColor = config.c2;
 
   mainUI.style.opacity = 0;
   mainUI.style.pointerEvents = 'none';
-
-  // Ripple Out
-  if(waterGroup.visible) {
-     waterGroup.children.forEach(m => gsap.to(m.material.uniforms.uTransition, { value: 1.0, duration: 1.0 }));
-  }
+  
+  // Ripple
   gsap.to(mat.uniforms.uTransition, { value: 1.0, duration: 1.0, ease: "power2.inOut" });
-  gsap.to(canvasEl, { opacity: 0, duration: 0.8, delay: 0.2 });
+  if(waterGroup.visible) waterGroup.children.forEach(m => gsap.to(m.material.uniforms.uTransition, { value: 1.0, duration: 1.0 }));
+  canvasEl.classList.add('faded');
 
   setTimeout(() => editorialLayer.classList.add('active'), 600);
   
   wordContainer.innerHTML = '';
-  activeThumb.src = config.words[0].img;
-  
-  // Thumbnail Init
-  gsap.set(cursorFollower, { left: mouseX * 200 + windowHalfX, top: mouseY * 200 + windowHalfY });
-  gsap.to(cursorFollower, { opacity: 1, duration: 0.5, delay: 0.8 });
+  currentWordIndex = 0;
+  activeThumb.src = words[0].img; // Set first image
 
-  config.words.forEach((w, i) => {
-    const word = document.createElement('div');
-    word.className = 'editorial-word';
-    word.textContent = w.text;
-    word.id = `word-${i}`;
-    if(i === 0) word.classList.add('visible');
-    wordContainer.appendChild(word);
+  words.forEach((wordObj, i) => {
+    const div = document.createElement('div');
+    div.className = 'editorial-word';
+    div.textContent = wordObj.text; // Changed from txt to wordObj.text
+    div.id = `word-${i}`;
+    if(i===0) div.classList.add('visible');
+    wordContainer.appendChild(div);
   });
   
-  updateHUD(0, config.words.length);
+  // Setup Cursor follower start pos
+  gsap.set(cursorFollower, { left: mouseX * 200 + window.innerWidth/2, top: mouseY * 200 + window.innerHeight/2 });
+  gsap.to(cursorFollower, { opacity: 1, delay: 0.5 });
+  
+  updateHUD(0, words.length);
 }
+
+
 
 function closeEditorial() {
   isEditorialMode = false;
-  
   editorialLayer.classList.remove('active');
-  gsap.to(cursorFollower, { opacity: 0, duration: 0.3 });
+  gsap.to(cursorFollower, { opacity: 0 });
 
   setTimeout(() => {
     mainUI.style.opacity = 1;
     mainUI.style.pointerEvents = 'auto';
-    wordContainer.innerHTML = '';
     
     mat.uniforms.uTransition.value = 0.0;
     if(waterGroup.visible) {
@@ -387,94 +366,107 @@ function updateHUD(index, total) {
   if(pageNumber) pageNumber.textContent = `0${index + 1} / 0${total}`;
 }
 
-function switchEditorialWord(direction) {
+function switchEditorialWord(dir) {
   const config = elements[currentIndex];
-  const max = config.words.length;
-  const next = currentWordIndex + direction;
+  const words = config.words; // Changed from editorialData
+  const next = currentWordIndex + dir;
+  if(next < 0 || next >= words.length) return;
 
-  if (next < 0 || next >= max) return;
-
-  activeThumb.src = config.words[next].img;
-
-  const oldEl = document.getElementById(`word-${currentWordIndex}`);
-  const newEl = document.getElementById(`word-${next}`);
-  if(oldEl) oldEl.classList.remove('visible');
-  if(newEl) newEl.classList.add('visible');
-
+  document.getElementById(`word-${currentWordIndex}`).classList.remove('visible');
+  document.getElementById(`word-${next}`).classList.add('visible');
   currentWordIndex = next;
-  updateHUD(next, max);
+  
+  // UPDATE THUMBNAIL IMAGE
+  activeThumb.src = words[next].img;
+  
+  updateHUD(next, words.length);
 }
 
+
+
 // --- INPUTS ---
+const cursorX = gsap.quickTo(cursorFollower, "left", { duration: 0.4 });
+const cursorY = gsap.quickTo(cursorFollower, "top", { duration: 0.4 });
 
-const cursorX = gsap.quickTo(cursorFollower, "left", { duration: 0.5, ease: "power3" });
-const cursorY = gsap.quickTo(cursorFollower, "top", { duration: 0.5, ease: "power3" });
-
-document.addEventListener('mousemove', (event) => {
-  const dx = event.clientX - lastMouseX;
-  const dy = event.clientY - lastMouseY;
+document.addEventListener('mousemove', (e) => {
+  const dx = e.clientX - lastMouseX;
+  const dy = e.clientY - lastMouseY;
   mouseVel = Math.sqrt(dx*dx + dy*dy);
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
 
-  mouseX = (event.clientX - windowHalfX) / 400;
-  mouseY = (event.clientY - windowHalfY) / 400;
-  
-  if (isEditorialMode) {
-    cursorX(event.clientX);
-    cursorY(event.clientY);
+  mouseX = (e.clientX - window.innerWidth/2) / 400;
+  mouseY = (e.clientY - window.innerHeight/2) / 400;
+
+  if(isEditorialMode) {
+    cursorX(e.clientX);
+    cursorY(e.clientY);
   }
 });
 
+
 window.addEventListener('wheel', (e) => {
+  // INTRO LOGIC
+  if (introActive) {
+    introActive = false;
+    introOverlay.style.opacity = 0;
+    introOverlay.style.pointerEvents = 'none';
+    introOverlay.style.display = 'none';
+    canvasContainer.classList.remove('faded-start');
+    mainUI.classList.remove('hidden');
+    return;
+  }
+
+  const dir = Math.sign(e.deltaY);
+
+  // EDITORIAL MODE (always use throttle here)
+  if (isEditorialMode) {
+    if (!document.body.dataset.scrolling) {
+      document.body.dataset.scrolling = true;
+      setTimeout(() => delete document.body.dataset.scrolling, 400);
+      switchEditorialWord(dir);
+    }
+    return;
+  }
+
+  // MAIN TUNER MODE - CENTER ZONE CHECK
+  const zone = window.innerWidth * 0.25; // 25% on each side = 50% center zone
+  const inCenter = (e.clientX > zone && e.clientX < window.innerWidth - zone);
+  
+  if (!inCenter) {
+    // User is in side zones - allow normal page scroll
+    return;
+  }
+
+  // User is in center zone - prevent default scroll and morph elements
+  e.preventDefault();
+  
   if (isThrottled) return;
   isThrottled = true;
   setTimeout(() => isThrottled = false, 600);
+
+  // Jump directly to next/prev element instead of incremental scrolling
+  let next = currentIndex + dir;
+  if (next < 0) next = elements.length - 1;
+  if (next >= elements.length) next = 0;
   
-  const dir = e.deltaY > 0 ? 1 : -1;
-
-  // INTRO LOGIC
-  if (introActive) {
-      introActive = false;
-      introOverlay.style.opacity = 0;
-      introOverlay.style.pointerEvents = 'none';
-      canvasContainer.classList.remove('faded-start');
-      mainUI.classList.remove('hidden');
-      return;
-  }
-
-  if (isEditorialMode) {
-    switchEditorialWord(dir);
-  } else {
-    // CENTER ZONE CHECK FOR SWITCHING
-    const zone = window.innerWidth * 0.25; 
-    const inCenter = (e.clientX > zone && e.clientX < window.innerWidth - zone);
-    
-    if (!inCenter) return; // Side scroll ignored for morphing
-
-    // Calculate Speed based on scroll delta
-    const speed = Math.max(0.4, 1.5 - Math.abs(e.deltaY) * 0.002);
-    
-    let next = currentIndex + dir;
-    if (next < 0) next = elements.length - 1;
-    if (next >= elements.length) next = 0;
-    currentIndex = next;
-    updateElement(currentIndex, speed);
-  }
-});
+  scrollPos = next; // Set scrollPos to the target index
+  updateElement();
+}, { passive: false });
 
 document.getElementById('centerStage').addEventListener('click', openEditorial);
 document.getElementById('closeBtn').addEventListener('click', closeEditorial);
 
-// --- LOOP ---
-const clock = new THREE.Clock();
 
+// --- ANIMATE ---
+const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const time = clock.getElapsedTime();
-  
   mat.uniforms.uTime.value = time;
   if(waterGroup.visible) waterGroup.children.forEach(m => m.material.uniforms.uTime.value = time);
+
+
 
   // WATER PHYSICS
   if (waterGroup.visible && !isEditorialMode) {
@@ -506,10 +498,11 @@ function animate() {
       activeGroup.rotation.y += (mouseX - (activeGroup.rotation.y % (Math.PI*2))) * 0.05;
   }
 
+  
   renderer.render(scene, camera);
 }
 
-updateElement(0);
+updateElement(); // Init
 animate();
 
 window.addEventListener('resize', () => {
