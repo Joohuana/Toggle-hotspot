@@ -2,61 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Elemental | Tech-Zen</title>
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>ELEMENTAL | Silver OS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Grain Overlay -->
+  <!-- 1. GLOBAL LAYERS -->
   <div class="noise-overlay"></div>
+  <div class="scanlines"></div>
 
-  <!-- Media Layer (Images) -->
-  <div class="media-container" id="mediaContainer"></div>
+  <!-- 2. WEBGL CANVAS -->
+  <div id="canvas-container"></div>
 
-  <!-- Custom Cursor -->
-  <div class="custom-cursor">
-    <div class="cursor-icon"></div>
-  </div>
-
-  <!-- Main Viewport (FIXED) -->
-  <div class="viewport-fixed">
-    <div class="question" id="question">
-      <span class="char">W</span><span class="char">a</span><span class="char">s</span>
-      <span class="char">&nbsp;</span>
-      <span class="char">i</span><span class="char">s</span><span class="char">t</span>
-      <span class="char">&nbsp;</span>
-      <span class="char">d</span><span class="char">e</span><span class="char">i</span><span class="char">n</span>
-      <span class="char">&nbsp;</span>
-      <span class="char">E</span><span class="char">l</span><span class="char">e</span><span class="char">m</span><span class="char">e</span><span class="char">n</span><span class="char">t</span><span class="char">?</span>
-    </div>
+  <!-- 3. MAIN HUD (3D Navigation) -->
+  <div class="ui-layer" id="mainUI">
+    <div class="ui-marker top-left"></div>
+    <div class="ui-marker top-right"></div>
+    <div class="ui-marker bottom-left"></div>
+    <div class="ui-marker bottom-right"></div>
     
-    <div class="hotspots-container">
-      <div class="hotspot holz" data-element="holz"><span class="label">Holz</span></div>
-      <div class="hotspot feuer" data-element="feuer"><span class="label">Feuer</span></div>
-      <div class="hotspot metall" data-element="metall"><span class="label">Metall</span></div>
-      <div class="hotspot wasser" data-element="wasser"><span class="label">Wasser</span></div>
-      <div class="hotspot erde" data-element="erde"><span class="label">Erde</span></div>
+    <div class="header">
+      <div class="sys-info">SYS.OS // SILVER v8.0</div>
+      <div class="instructions">SCROLL TO MORPH • DRAG TO ROTATE</div>
+    </div>
+
+    <div class="center-stage" id="centerStage">
+      <div class="element-label" id="elementLabel">ETHER</div>
+      <div class="enter-btn">
+        <span class="btn-text">ACCESS DATA</span>
+        <span class="btn-line"></span>
+      </div>
+    </div>
+
+    <div class="nav-dots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
   </div>
 
-  <!-- SVG Filter -->
-  <svg style="display: none;">
-    <defs>
-      <filter id="liquid">
-        <feTurbulence type="fractalNoise" baseFrequency="0" numOctaves="1" result="warp" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="35" in="SourceGraphic" in2="warp" />
-      </filter>
-    </defs>
-  </svg>
+  <!-- 4. EDITORIAL HUD -->
+  <div class="editorial-layer" id="editorialLayer">
+    
+    <!-- The Floating Thumbnail (Follows Cursor) -->
+    <div class="cursor-follower" id="cursorFollower">
+      <img id="activeThumb" src="" alt="Element Visual" />
+    </div>
 
-  <!-- GSAP -->
+    <div class="editorial-header">
+      <div class="data-block">
+        <span class="label">SUBJECT</span>
+        <span class="value" id="ed-subject">DATA</span>
+      </div>
+      <div class="data-block right">
+        <span class="label">STATUS</span>
+        <span class="value">ONLINE</span>
+      </div>
+    </div>
+
+    <div class="editorial-content" id="wordContainer">
+      <!-- Word injected here -->
+    </div>
+
+    <div class="editorial-footer">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="page-number" id="pageNumber">01 / 05</div>
+      <div class="close-btn" id="closeBtn">CLOSE SESSION [X]</div>
+    </div>
+
+  </div>
+
+  <!-- LIBS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="script.js"></script>
 </body>
